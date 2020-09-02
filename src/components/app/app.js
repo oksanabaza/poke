@@ -1,88 +1,54 @@
-import React from "react";
-export default class App extends React.Component {
+import React, { useState, useEffect } from 'react';
+import Recipe from '../recipe';
+import '../app/app.css'
 
-  constructor() {
-    super();
+const App = () => {
 
-    this.state = {
-      items: [],
-      names: [],
-      // posts: [],
-    };
-  }
-  componentDidMount() {
-    this.getItems();
-    this.getNames();
-    // this.getPosts();
+  const APP_ID = '6befb8dd';
+  const APP_KEY = '33b031c84ac219e767c0936c490b0cf1';
 
-  }
+  const [recipes, setRecipes] = useState([]);
+  const [search, setSearch] = useState('');
+  const [query, setQuery] = useState('chiken');
 
-  getItems = () => {
-    this.setState({ isLoading: true });
-    fetch("https://pokeapi.co/api/v2/pokemon/1")
-      .then(response => { return response.json(); })
-      .then(({ abilities }) => {
-        this.setState({ items: abilities });
-        console.log(abilities)
-      });
+  useEffect(() => {
+    getRecipes();
+  }, [query]);
+
+  const getRecipes = async () => {
+    const response = await fetch(
+      `https://api.edamam.com/search?q=${query}& app_id= ${APP_ID} & app_key=${APP_KEY}`
+    );
+    const data = await response.json();
+    setRecipes(data.hits);
+    console.log(data.hits);
   };
 
-  getNames = () => {
-    this.setState({ isLoading: true });
-    fetch("https://pokeapi.co/api/v2/pokemon?limit=100&offset=200")
-      .then(response => { return response.json(); })
-      .then(({ results }) => {
-        this.setState({ names: results });
-        console.log(results)
-      });
+  const updateSearch = e => {
+    setSearch(e.target.value);
   };
+  const getSearch = e => {
+    e.preventDefault();
+    setQuery(search)
+  }
 
-
-  // getPosts = () => {
-  //   fetch('https://jsonplaceholder.typicode.com/posts')
-  //     .then(response => response.json())
-  //     .then(({ posts }) => {
-  //       this.setState({ posts: posts })
-  //       console.log(posts)
-  //     })
-
-
-
-
-
-  render() {
-    const { items, names, posts } = this.state;
-
-
-    return (
-      <div>
-        {items.map(item => (
-          <div >
-            Pokemon name: {item.ability.name}
-            <div>
-              URL: {item.url}
-            </div>
-
-          </div>
-
+  return (
+    <div className="App">
+      <form onSubmit={getSearch} className="search-form">
+        <input className="search-bar" type="text" value={search} onChange={updateSearch} />
+        <button className="search-button" type="submit">search</button>
+      </form>
+      <div className="recipes">
+        {recipes.map(recipe => (
+          <Recipe
+            key={recipe.recipe.label}
+            title={recipe.recipe.label}
+            calories={recipe.recipe.calories}
+            image={recipe.recipe.image}
+            ingredients={recipe.recipe.ingredients} />
         ))}
-        <h1>hello</h1>
-        {names.map(item => (
-          <div >
-            Pokemon name: {item.name}
-          </div>
-
-        ))}
-        {/* <h1>hello</h1>
-          {posts.map(post => (
-            <div >
-              title: {post.title}
-            </div>
-
-          ))} */}
-
       </div>
-    )
-  };
-
+    </div>
+  );
 };
+export default App;
